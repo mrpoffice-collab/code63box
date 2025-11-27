@@ -13,14 +13,15 @@ export type App = {
   updatedAt?: string
   updateType?: UpdateType
   status: AppStatus
+  private?: boolean
   stripeProductId?: string
   stripePriceId?: string
   price?: string
 }
 
 export const STATUS_CONFIG: Record<AppStatus, { icon: string; label: string; visible: boolean }> = {
-  idea: { icon: '💡', label: 'Idea', visible: false },
-  building: { icon: '🧪', label: 'Building', visible: false },
+  idea: { icon: '💡', label: 'Idea', visible: true },
+  building: { icon: '🧪', label: 'Building', visible: true },
   testing: { icon: '🔬', label: 'Testing', visible: true },
   mvp: { icon: '⚛️', label: 'MVP', visible: true },
   shipped: { icon: '🚀', label: 'Shipped', visible: true },
