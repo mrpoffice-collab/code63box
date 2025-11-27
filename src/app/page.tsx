@@ -43,8 +43,21 @@ export default async function Home({
       </main>
 
       {/* Footer with Status Legend */}
-      <footer className="py-6 px-4">
+      <footer className="py-6 px-4 space-y-4">
         <StatusLegend />
+
+        {/* Tip Button */}
+        <div className="flex justify-center">
+          <a
+            href="https://buy.stripe.com/7sYcN5fWne9Pae10Md6Ri00"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-yellow-500 hover:bg-yellow-400 text-black font-semibold px-4 py-2 rounded-full transition-colors"
+          >
+            <span>☕</span>
+            <span>Buy me a coffee</span>
+          </a>
+        </div>
       </footer>
     </div>
   )
