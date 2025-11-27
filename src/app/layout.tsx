@@ -16,6 +16,7 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Code63Labs",
   description: "Your mini app home screen",
+  themeColor: "#D946EF",
 };
 
 export default function RootLayout({

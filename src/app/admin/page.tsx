@@ -10,6 +10,7 @@ export default function AdminKanban() {
   const [draggedApp, setDraggedApp] = useState<App | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [showExport, setShowExport] = useState(false)
+  const [editingApp, setEditingApp] = useState<App | null>(null)
 
   const getAppsByStatus = (status: AppStatus) =>
     appList.filter(app => app.status === status)
@@ -38,6 +39,13 @@ export default function AdminKanban() {
     setShowAddModal(false)
   }
 
+  const updateApp = (updatedApp: App) => {
+    setAppList(prev => prev.map(app =>
+      app.slug === updatedApp.slug ? updatedApp : app
+    ))
+    setEditingApp(null)
+  }
+
   const generateConfigCode = () => {
     const code = appList.map(app => `  {
     slug: '${app.slug}',
@@ -46,7 +54,7 @@ export default function AdminKanban() {
     color: '${app.color}',
     embedUrl: '${app.embedUrl}',${app.category ? `\n    category: '${app.category}',` : ''}
     createdAt: '${app.createdAt}',${app.updatedAt ? `\n    updatedAt: '${app.updatedAt}',` : ''}${app.updateType ? `\n    updateType: '${app.updateType}',` : ''}
-    status: '${app.status}',${app.stripePriceId ? `\n    stripePriceId: '${app.stripePriceId}',` : ''}${app.price ? `\n    price: '${app.price}',` : ''}
+    status: '${app.status}',${app.private ? `\n    private: true,` : ''}${app.stripePriceId ? `\n    stripePriceId: '${app.stripePriceId}',` : ''}${app.price ? `\n    price: '${app.price}',` : ''}
   }`).join(',\n')
 
     return `export type AppStatus = 'idea' | 'building' | 'testing' | 'mvp' | 'shipped'
@@ -64,14 +72,15 @@ export type App = {
   updatedAt?: string
   updateType?: UpdateType
   status: AppStatus
+  private?: boolean
   stripeProductId?: string
   stripePriceId?: string
   price?: string
 }
 
 export const STATUS_CONFIG: Record<AppStatus, { icon: string; label: string; visible: boolean }> = {
-  idea: { icon: '💡', label: 'Idea', visible: false },
-  building: { icon: '🧪', label: 'Building', visible: false },
+  idea: { icon: '💡', label: 'Idea', visible: true },
+  building: { icon: '🧪', label: 'Building', visible: true },
   testing: { icon: '🔬', label: 'Testing', visible: true },
   mvp: { icon: '⚛️', label: 'MVP', visible: true },
   shipped: { icon: '🚀', label: 'Shipped', visible: true },
@@ -172,6 +181,18 @@ export function getVisibleApps(showAll: boolean = false): App[] {
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
+                        setEditingApp(app)
+                      }}
+                      className="opacity-0 group-hover:opacity-100 text-blue-400 hover:text-blue-300 p-1 transition-opacity"
+                      title="Edit app"
+                    >
+                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation()
                         if (confirm(`Delete ${app.title}?`)) {
                           setAppList(prev => prev.filter(a => a.slug !== app.slug))
                         }
@@ -202,6 +223,15 @@ export function getVisibleApps(showAll: boolean = false): App[] {
         <AddAppModal
           onClose={() => setShowAddModal(false)}
           onAdd={addNewApp}
+        />
+      )}
+
+      {/* Edit App Modal */}
+      {editingApp && (
+        <EditAppModal
+          app={editingApp}
+          onClose={() => setEditingApp(null)}
+          onSave={updateApp}
         />
       )}
 
@@ -251,6 +281,7 @@ function AddAppModal({ onClose, onAdd }: { onClose: () => void; onAdd: (app: App
     embedUrl: '',
     category: '',
     status: 'idea' as AppStatus,
+    private: false,
   })
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -260,6 +291,7 @@ function AddAppModal({ onClose, onAdd }: { onClose: () => void; onAdd: (app: App
       ...form,
       slug: form.slug || form.title.toLowerCase().replace(/\s+/g, '-'),
       createdAt: today,
+      private: form.private || undefined,
     })
   }
 
@@ -291,13 +323,22 @@ function AddAppModal({ onClose, onAdd }: { onClose: () => void; onAdd: (app: App
               />
             </div>
             <div className="flex-1">
-              <label className="text-slate-300 text-sm">Color</label>
-              <input
-                type="color"
-                value={form.color}
-                onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
-                className="w-full h-10 bg-slate-700 rounded-lg mt-1 cursor-pointer"
-              />
+              <label className="text-slate-300 text-sm">Color (hex)</label>
+              <div className="flex gap-2 mt-1">
+                <input
+                  type="text"
+                  value={form.color}
+                  onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+                  className="flex-1 bg-slate-700 text-white rounded-lg px-3 py-2"
+                  placeholder="#4CAF50"
+                />
+                <input
+                  type="color"
+                  value={form.color}
+                  onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+                  className="w-10 h-10 bg-slate-700 rounded-lg cursor-pointer"
+                />
+              </div>
             </div>
           </div>
           <div>
@@ -340,12 +381,238 @@ function AddAppModal({ onClose, onAdd }: { onClose: () => void; onAdd: (app: App
               ))}
             </select>
           </div>
+          <div>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.private}
+                onChange={e => setForm(f => ({ ...f, private: e.target.checked }))}
+                className="w-5 h-5 rounded bg-slate-700 border-slate-600"
+              />
+              <span className="text-slate-300 text-sm">🔒 Private (for your use only)</span>
+            </label>
+          </div>
           <div className="flex gap-3 pt-2">
             <button
               type="submit"
               className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
             >
               Add App
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+function EditAppModal({ app, onClose, onSave }: { app: App; onClose: () => void; onSave: (app: App) => void }) {
+  const [form, setForm] = useState({
+    title: app.title,
+    slug: app.slug,
+    icon: app.icon,
+    color: app.color,
+    embedUrl: app.embedUrl,
+    category: app.category || '',
+    status: app.status,
+    createdAt: app.createdAt,
+    updatedAt: app.updatedAt || '',
+    updateType: app.updateType || '',
+    private: app.private || false,
+    stripePriceId: app.stripePriceId || '',
+    price: app.price || '',
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    onSave({
+      ...form,
+      category: form.category || undefined,
+      updatedAt: form.updatedAt || undefined,
+      updateType: (form.updateType as App['updateType']) || undefined,
+      private: form.private || undefined,
+      stripePriceId: form.stripePriceId || undefined,
+      price: form.price || undefined,
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full max-h-[90vh] overflow-y-auto">
+        <h2 className="text-xl font-bold text-white mb-4">Edit App</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-slate-300 text-sm">App Name</label>
+            <input
+              type="text"
+              required
+              value={form.title}
+              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+            />
+          </div>
+          <div>
+            <label className="text-slate-300 text-sm">Slug</label>
+            <input
+              type="text"
+              required
+              value={form.slug}
+              onChange={e => setForm(f => ({ ...f, slug: e.target.value }))}
+              className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+            />
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="text-slate-300 text-sm">Icon (emoji)</label>
+              <input
+                type="text"
+                required
+                value={form.icon}
+                onChange={e => setForm(f => ({ ...f, icon: e.target.value }))}
+                className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+                placeholder="📊"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-slate-300 text-sm">Color (hex)</label>
+              <div className="flex gap-2 mt-1">
+                <input
+                  type="text"
+                  value={form.color}
+                  onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+                  className="flex-1 bg-slate-700 text-white rounded-lg px-3 py-2"
+                  placeholder="#4CAF50"
+                />
+                <input
+                  type="color"
+                  value={form.color}
+                  onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+                  className="w-10 h-10 bg-slate-700 rounded-lg cursor-pointer"
+                />
+              </div>
+            </div>
+          </div>
+          <div>
+            <label className="text-slate-300 text-sm">App URL</label>
+            <input
+              type="url"
+              required
+              value={form.embedUrl}
+              onChange={e => setForm(f => ({ ...f, embedUrl: e.target.value }))}
+              className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+              placeholder="https://my-app.vercel.app"
+            />
+          </div>
+          <div>
+            <label className="text-slate-300 text-sm">Category</label>
+            <select
+              value={form.category}
+              onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+              className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+            >
+              <option value="">Select...</option>
+              <option value="utility">Utility</option>
+              <option value="productivity">Productivity</option>
+              <option value="fun">Fun</option>
+              <option value="finance">Finance</option>
+              <option value="health">Health</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-slate-300 text-sm">Status</label>
+            <select
+              value={form.status}
+              onChange={e => setForm(f => ({ ...f, status: e.target.value as AppStatus }))}
+              className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+            >
+              {STATUSES.map(s => (
+                <option key={s} value={s}>
+                  {STATUS_CONFIG[s].icon} {s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="text-slate-300 text-sm">Created At</label>
+              <input
+                type="date"
+                value={form.createdAt}
+                onChange={e => setForm(f => ({ ...f, createdAt: e.target.value }))}
+                className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-slate-300 text-sm">Updated At</label>
+              <input
+                type="date"
+                value={form.updatedAt}
+                onChange={e => setForm(f => ({ ...f, updatedAt: e.target.value }))}
+                className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-slate-300 text-sm">Update Type</label>
+            <select
+              value={form.updateType}
+              onChange={e => setForm(f => ({ ...f, updateType: e.target.value }))}
+              className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+            >
+              <option value="">None</option>
+              <option value="fixed">Fixed (bug fix)</option>
+              <option value="features">Features (new stuff)</option>
+            </select>
+          </div>
+          <div>
+            <label className="flex items-center gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={form.private}
+                onChange={e => setForm(f => ({ ...f, private: e.target.checked }))}
+                className="w-5 h-5 rounded bg-slate-700 border-slate-600"
+              />
+              <span className="text-slate-300 text-sm">🔒 Private (for your use only)</span>
+            </label>
+          </div>
+          <div className="border-t border-slate-600 pt-4">
+            <p className="text-slate-400 text-xs mb-2">Payment (optional)</p>
+            <div className="flex gap-4">
+              <div className="flex-1">
+                <label className="text-slate-300 text-sm">Stripe Price ID</label>
+                <input
+                  type="text"
+                  value={form.stripePriceId}
+                  onChange={e => setForm(f => ({ ...f, stripePriceId: e.target.value }))}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+                  placeholder="price_xxxxx"
+                />
+              </div>
+              <div className="w-24">
+                <label className="text-slate-300 text-sm">Price</label>
+                <input
+                  type="text"
+                  value={form.price}
+                  onChange={e => setForm(f => ({ ...f, price: e.target.value }))}
+                  className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+                  placeholder="$5"
+                />
+              </div>
+            </div>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
+            >
+              Save Changes
             </button>
             <button
               type="button"

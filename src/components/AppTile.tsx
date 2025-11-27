@@ -61,6 +61,11 @@ export default function AppTile({ app }: AppTileProps) {
               {updateBadge.text}
             </span>
           )}
+          {app.private && (
+            <span className="bg-slate-600 text-white text-[10px] font-bold px-1.5 py-0.5 rounded-full shadow-md">
+              🔒
+            </span>
+          )}
         </div>
 
         {/* Price badge for paid apps */}
