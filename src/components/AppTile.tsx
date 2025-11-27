@@ -77,7 +77,7 @@ export default function AppTile({ app }: AppTileProps) {
       </div>
 
       {/* App Name */}
-      <span className="text-white text-xs sm:text-sm font-medium text-center truncate w-full max-w-[80px]">
+      <span className="text-white text-xs sm:text-sm font-medium text-center line-clamp-2 w-full max-w-[80px]">
         {app.title}
       </span>
     </Link>
