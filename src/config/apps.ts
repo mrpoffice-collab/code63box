@@ -13,11 +13,10 @@ export type App = {
   updatedAt?: string
   updateType?: UpdateType
   status: AppStatus
-  private?: boolean         // For your personal use only
-  // Stripe payment (optional)
-  stripeProductId?: string  // Stripe product ID
-  stripePriceId?: string    // Stripe price ID (for checkout)
-  price?: string            // Display price e.g. "$5"
+  private?: boolean
+  stripeProductId?: string
+  stripePriceId?: string
+  price?: string
 }
 
 export const STATUS_CONFIG: Record<AppStatus, { icon: string; label: string; visible: boolean }> = {
@@ -29,16 +28,6 @@ export const STATUS_CONFIG: Record<AppStatus, { icon: string; label: string; vis
 }
 
 export const apps: App[] = [
-  {
-    slug: 'converter',
-    title: 'Convert',
-    icon: '🔄',
-    color: '#00BCD4',
-    embedUrl: 'https://example.com/converter',
-    category: 'utility',
-    createdAt: '2025-01-22',
-    status: 'testing',
-  },
   {
     slug: 'polite-fury',
     title: 'Polite Fury',
@@ -85,6 +74,26 @@ export const apps: App[] = [
     icon: '📜',
     color: '#614ee9',
     embedUrl: 'https://whisper-journals.vercel.app',
+    category: 'productivity',
+    createdAt: '2025-11-27',
+    status: 'testing',
+  },
+  {
+    slug: 'bible-skit-maker',
+    title: 'Bible Skit Maker',
+    icon: '🎭',
+    color: '#ffffff',
+    embedUrl: 'https://skit-maker.vercel.app/',
+    category: 'fun',
+    createdAt: '2025-11-27',
+    status: 'mvp',
+  },
+  {
+    slug: 'rhythm-planner',
+    title: 'Rhythm Planner',
+    icon: '⏲️',
+    color: '#5fc2b2',
+    embedUrl: 'https://rhythm-planner.vercel.app/',
     category: 'productivity',
     createdAt: '2025-11-27',
     status: 'testing',
