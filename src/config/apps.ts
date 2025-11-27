@@ -1,0 +1,140 @@
+export type AppStatus = 'idea' | 'building' | 'testing' | 'mvp' | 'shipped'
+
+export type UpdateType = 'fixed' | 'features'
+
+export type App = {
+  slug: string
+  title: string
+  icon: string
+  color: string
+  embedUrl: string
+  category?: string
+  createdAt: string
+  updatedAt?: string
+  updateType?: UpdateType   // 'fixed' = bug fix, 'features' = new stuff
+  status: AppStatus
+  stripeProductId?: string
+  price?: string
+}
+
+export const STATUS_CONFIG: Record<AppStatus, { icon: string; label: string; visible: boolean }> = {
+  idea: { icon: '💡', label: 'Idea', visible: false },
+  building: { icon: '🧪', label: 'Building', visible: false },
+  testing: { icon: '🔬', label: 'Testing', visible: true },
+  mvp: { icon: '⚛️', label: 'MVP', visible: true },
+  shipped: { icon: '🚀', label: 'Shipped', visible: true },
+}
+
+// Sample apps - replace with your real apps
+export const apps: App[] = [
+  {
+    slug: 'budget-tracker',
+    title: 'Budget',
+    icon: '📊',
+    color: '#4CAF50',
+    embedUrl: 'https://example.com/budget',
+    category: 'finance',
+    createdAt: '2025-01-15',
+    status: 'shipped',
+  },
+  {
+    slug: 'color-picker',
+    title: 'Colors',
+    icon: '🎨',
+    color: '#E91E63',
+    embedUrl: 'https://example.com/colors',
+    category: 'utility',
+    createdAt: '2025-01-20',
+    status: 'testing',
+  },
+  {
+    slug: 'tip-calculator',
+    title: 'Tips',
+    icon: '💰',
+    color: '#FF9800',
+    embedUrl: 'https://example.com/tips',
+    category: 'finance',
+    createdAt: '2025-01-10',
+    status: 'mvp',
+  },
+  {
+    slug: 'timer',
+    title: 'Timer',
+    icon: '⏱️',
+    color: '#2196F3',
+    embedUrl: 'https://example.com/timer',
+    category: 'productivity',
+    createdAt: '2025-11-20',
+    updatedAt: '2025-11-26',
+    updateType: 'features',    // New features added!
+    status: 'shipped',
+  },
+  {
+    slug: 'notes',
+    title: 'Notes',
+    icon: '📝',
+    color: '#9C27B0',
+    embedUrl: 'https://example.com/notes',
+    category: 'productivity',
+    createdAt: '2025-01-18',
+    status: 'building',
+  },
+  {
+    slug: 'converter',
+    title: 'Convert',
+    icon: '🔄',
+    color: '#00BCD4',
+    embedUrl: 'https://example.com/converter',
+    category: 'utility',
+    createdAt: '2025-01-22',
+    status: 'testing',
+  },
+  {
+    slug: 'dice-roller',
+    title: 'Dice',
+    icon: '🎲',
+    color: '#F44336',
+    embedUrl: 'https://example.com/dice',
+    category: 'fun',
+    createdAt: '2025-01-05',
+    status: 'shipped',
+  },
+  {
+    slug: 'calculator',
+    title: 'Calc',
+    icon: '📐',
+    color: '#607D8B',
+    embedUrl: 'https://example.com/calc',
+    category: 'utility',
+    createdAt: '2025-01-01',
+    updatedAt: '2025-11-25',
+    updateType: 'fixed',      // Bug fix!
+    status: 'shipped',
+  },
+]
+
+// Helper to check if date is within last N days
+function isWithinDays(dateStr: string, days: number): boolean {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffTime = now.getTime() - date.getTime()
+  const diffDays = diffTime / (1000 * 60 * 60 * 24)
+  return diffDays <= days
+}
+
+// Check if app was added in last N days
+export function isNewApp(createdAt: string, days: number = 14): boolean {
+  return isWithinDays(createdAt, days)
+}
+
+// Check if app was updated recently
+export function isUpdatedApp(app: App, days: number = 14): boolean {
+  if (!app.updatedAt) return false
+  return isWithinDays(app.updatedAt, days)
+}
+
+// Get visible apps (testing, mvp, shipped) or all if dev mode
+export function getVisibleApps(showAll: boolean = false): App[] {
+  if (showAll) return apps
+  return apps.filter(app => STATUS_CONFIG[app.status].visible)
+}
