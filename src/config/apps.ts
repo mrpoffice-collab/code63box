@@ -11,12 +11,11 @@ export type App = {
   category?: string
   createdAt: string
   updatedAt?: string
-  updateType?: UpdateType   // 'fixed' = bug fix, 'features' = new stuff
+  updateType?: UpdateType
   status: AppStatus
-  // Stripe payment (optional)
-  stripeProductId?: string  // Stripe product ID
-  stripePriceId?: string    // Stripe price ID (for checkout)
-  price?: string            // Display price e.g. "$5"
+  stripeProductId?: string
+  stripePriceId?: string
+  price?: string
 }
 
 export const STATUS_CONFIG: Record<AppStatus, { icon: string; label: string; visible: boolean }> = {
@@ -27,18 +26,7 @@ export const STATUS_CONFIG: Record<AppStatus, { icon: string; label: string; vis
   shipped: { icon: '🚀', label: 'Shipped', visible: true },
 }
 
-// Sample apps - replace with your real apps
 export const apps: App[] = [
-  {
-    slug: 'budget-tracker',
-    title: 'Budget',
-    icon: '📊',
-    color: '#4CAF50',
-    embedUrl: 'https://example.com/budget',
-    category: 'finance',
-    createdAt: '2025-01-15',
-    status: 'shipped',
-  },
   {
     slug: 'color-picker',
     title: 'Colors',
@@ -58,7 +46,6 @@ export const apps: App[] = [
     category: 'finance',
     createdAt: '2025-01-10',
     status: 'mvp',
-    // Example paid app - replace with real Stripe IDs
     stripePriceId: 'price_xxxxx',
     price: '$5',
   },
@@ -71,7 +58,7 @@ export const apps: App[] = [
     category: 'productivity',
     createdAt: '2025-11-20',
     updatedAt: '2025-11-26',
-    updateType: 'features',    // New features added!
+    updateType: 'features',
     status: 'shipped',
   },
   {
@@ -113,12 +100,11 @@ export const apps: App[] = [
     category: 'utility',
     createdAt: '2025-01-01',
     updatedAt: '2025-11-25',
-    updateType: 'fixed',      // Bug fix!
+    updateType: 'fixed',
     status: 'shipped',
   },
 ]
 
-// Helper to check if date is within last N days
 function isWithinDays(dateStr: string, days: number): boolean {
   const date = new Date(dateStr)
   const now = new Date()
@@ -127,18 +113,15 @@ function isWithinDays(dateStr: string, days: number): boolean {
   return diffDays <= days
 }
 
-// Check if app was added in last N days
 export function isNewApp(createdAt: string, days: number = 14): boolean {
   return isWithinDays(createdAt, days)
 }
 
-// Check if app was updated recently
 export function isUpdatedApp(app: App, days: number = 14): boolean {
   if (!app.updatedAt) return false
   return isWithinDays(app.updatedAt, days)
 }
 
-// Get visible apps (testing, mvp, shipped) or all if dev mode
 export function getVisibleApps(showAll: boolean = false): App[] {
   if (showAll) return apps
   return apps.filter(app => STATUS_CONFIG[app.status].visible)
