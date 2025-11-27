@@ -13,15 +13,14 @@ export type App = {
   updatedAt?: string
   updateType?: UpdateType
   status: AppStatus
-  private?: boolean
   stripeProductId?: string
   stripePriceId?: string
   price?: string
 }
 
 export const STATUS_CONFIG: Record<AppStatus, { icon: string; label: string; visible: boolean }> = {
-  idea: { icon: '💡', label: 'Idea', visible: true },
-  building: { icon: '🧪', label: 'Building', visible: true },
+  idea: { icon: '💡', label: 'Idea', visible: false },
+  building: { icon: '🧪', label: 'Building', visible: false },
   testing: { icon: '🔬', label: 'Testing', visible: true },
   mvp: { icon: '⚛️', label: 'MVP', visible: true },
   shipped: { icon: '🚀', label: 'Shipped', visible: true },
@@ -79,24 +78,14 @@ export const apps: App[] = [
     status: 'testing',
   },
   {
-    slug: 'bible-skit-maker',
-    title: 'Bible Skit Maker',
-    icon: '🎭',
-    color: '#ffffff',
-    embedUrl: 'https://skit-maker.vercel.app/',
-    category: 'fun',
-    createdAt: '2025-11-27',
-    status: 'mvp',
-  },
-  {
-    slug: 'rhythm-planner',
-    title: 'Rhythm Planner',
-    icon: '⏲️',
-    color: '#5fc2b2',
-    embedUrl: 'https://rhythm-planner.vercel.app/',
+    slug: 'track-my-client',
+    title: 'Track My Client',
+    icon: '🛠️',
+    color: '#017403',
+    embedUrl: 'https://track-my-client.vercel.app/',
     category: 'productivity',
     createdAt: '2025-11-27',
-    status: 'testing',
+    status: 'building',
   },
 ]
 
