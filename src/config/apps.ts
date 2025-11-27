@@ -103,6 +103,16 @@ export const apps: App[] = [
     updateType: 'fixed',
     status: 'shipped',
   },
+  {
+    slug: 'polite-fury',
+    title: 'Polite Fury',
+    icon: '🔥',
+    color: '#c2ffc4',
+    embedUrl: 'https://polite-fury.vercel.app/',
+    category: 'utility',
+    createdAt: '2025-11-27',
+    status: 'mvp',
+  },
 ]
 
 function isWithinDays(dateStr: string, days: number): boolean {
