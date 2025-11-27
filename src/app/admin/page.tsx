@@ -46,10 +46,62 @@ export default function AdminKanban() {
     color: '${app.color}',
     embedUrl: '${app.embedUrl}',${app.category ? `\n    category: '${app.category}',` : ''}
     createdAt: '${app.createdAt}',${app.updatedAt ? `\n    updatedAt: '${app.updatedAt}',` : ''}${app.updateType ? `\n    updateType: '${app.updateType}',` : ''}
-    status: '${app.status}',
+    status: '${app.status}',${app.stripePriceId ? `\n    stripePriceId: '${app.stripePriceId}',` : ''}${app.price ? `\n    price: '${app.price}',` : ''}
   }`).join(',\n')
 
-    return `export const apps: App[] = [\n${code},\n]`
+    return `export type AppStatus = 'idea' | 'building' | 'testing' | 'mvp' | 'shipped'
+
+export type UpdateType = 'fixed' | 'features'
+
+export type App = {
+  slug: string
+  title: string
+  icon: string
+  color: string
+  embedUrl: string
+  category?: string
+  createdAt: string
+  updatedAt?: string
+  updateType?: UpdateType
+  status: AppStatus
+  stripeProductId?: string
+  stripePriceId?: string
+  price?: string
+}
+
+export const STATUS_CONFIG: Record<AppStatus, { icon: string; label: string; visible: boolean }> = {
+  idea: { icon: '💡', label: 'Idea', visible: false },
+  building: { icon: '🧪', label: 'Building', visible: false },
+  testing: { icon: '🔬', label: 'Testing', visible: true },
+  mvp: { icon: '⚛️', label: 'MVP', visible: true },
+  shipped: { icon: '🚀', label: 'Shipped', visible: true },
+}
+
+export const apps: App[] = [
+${code},
+]
+
+function isWithinDays(dateStr: string, days: number): boolean {
+  const date = new Date(dateStr)
+  const now = new Date()
+  const diffTime = now.getTime() - date.getTime()
+  const diffDays = diffTime / (1000 * 60 * 60 * 24)
+  return diffDays <= days
+}
+
+export function isNewApp(createdAt: string, days: number = 14): boolean {
+  return isWithinDays(createdAt, days)
+}
+
+export function isUpdatedApp(app: App, days: number = 14): boolean {
+  if (!app.updatedAt) return false
+  return isWithinDays(app.updatedAt, days)
+}
+
+export function getVisibleApps(showAll: boolean = false): App[] {
+  if (showAll) return apps
+  return apps.filter(app => STATUS_CONFIG[app.status].visible)
+}`
   }
 
   return (
@@ -159,7 +211,10 @@ export default function AdminKanban() {
           <div className="bg-slate-800 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-auto">
             <h2 className="text-xl font-bold text-white mb-4">Export Config</h2>
             <p className="text-slate-400 text-sm mb-4">
-              Copy this and replace the apps array in <code className="bg-slate-700 px-1 rounded">src/config/apps.ts</code>
+              1. Copy this <strong>entire</strong> code<br />
+              2. Go to <a href="https://github.com/mrpoffice-collab/code63box/edit/main/src/config/apps.ts" target="_blank" className="text-blue-400 underline">apps.ts on GitHub</a><br />
+              3. Select all (Ctrl+A) and paste (Ctrl+V)<br />
+              4. Click "Commit changes"
             </p>
             <pre className="bg-slate-900 p-4 rounded-lg text-sm text-green-400 overflow-auto">
               {generateConfigCode()}
