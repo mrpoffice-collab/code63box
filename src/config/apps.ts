@@ -13,8 +13,10 @@ export type App = {
   updatedAt?: string
   updateType?: UpdateType   // 'fixed' = bug fix, 'features' = new stuff
   status: AppStatus
-  stripeProductId?: string
-  price?: string
+  // Stripe payment (optional)
+  stripeProductId?: string  // Stripe product ID
+  stripePriceId?: string    // Stripe price ID (for checkout)
+  price?: string            // Display price e.g. "$5"
 }
 
 export const STATUS_CONFIG: Record<AppStatus, { icon: string; label: string; visible: boolean }> = {
@@ -56,6 +58,9 @@ export const apps: App[] = [
     category: 'finance',
     createdAt: '2025-01-10',
     status: 'mvp',
+    // Example paid app - replace with real Stripe IDs
+    stripePriceId: 'price_xxxxx',
+    price: '$5',
   },
   {
     slug: 'timer',

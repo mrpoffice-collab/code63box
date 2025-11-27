@@ -1,0 +1,293 @@
+'use client'
+
+import { useState } from 'react'
+import { apps as initialApps, App, AppStatus, STATUS_CONFIG } from '@/config/apps'
+
+const STATUSES: AppStatus[] = ['idea', 'building', 'testing', 'mvp', 'shipped']
+
+export default function AdminKanban() {
+  const [appList, setAppList] = useState<App[]>(initialApps)
+  const [draggedApp, setDraggedApp] = useState<App | null>(null)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [showExport, setShowExport] = useState(false)
+
+  const getAppsByStatus = (status: AppStatus) =>
+    appList.filter(app => app.status === status)
+
+  const handleDragStart = (app: App) => {
+    setDraggedApp(app)
+  }
+
+  const handleDrop = (newStatus: AppStatus) => {
+    if (!draggedApp) return
+
+    setAppList(prev => prev.map(app =>
+      app.slug === draggedApp.slug
+        ? { ...app, status: newStatus }
+        : app
+    ))
+    setDraggedApp(null)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+  }
+
+  const addNewApp = (app: App) => {
+    setAppList(prev => [...prev, app])
+    setShowAddModal(false)
+  }
+
+  const generateConfigCode = () => {
+    const code = appList.map(app => `  {
+    slug: '${app.slug}',
+    title: '${app.title}',
+    icon: '${app.icon}',
+    color: '${app.color}',
+    embedUrl: '${app.embedUrl}',${app.category ? `\n    category: '${app.category}',` : ''}
+    createdAt: '${app.createdAt}',${app.updatedAt ? `\n    updatedAt: '${app.updatedAt}',` : ''}${app.updateType ? `\n    updateType: '${app.updateType}',` : ''}
+    status: '${app.status}',
+  }`).join(',\n')
+
+    return `export const apps: App[] = [\n${code},\n]`
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-900 p-6">
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-white">App Kanban</h1>
+        <div className="flex gap-3">
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
+          >
+            + Add App
+          </button>
+          <button
+            onClick={() => setShowExport(true)}
+            className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-medium"
+          >
+            Export Config
+          </button>
+          <a
+            href="/"
+            className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-medium"
+          >
+            View Site
+          </a>
+        </div>
+      </div>
+
+      {/* Kanban Board */}
+      <div className="flex gap-4 overflow-x-auto pb-4">
+        {STATUSES.map(status => (
+          <div
+            key={status}
+            className="flex-shrink-0 w-64 bg-slate-800 rounded-xl p-4"
+            onDragOver={handleDragOver}
+            onDrop={() => handleDrop(status)}
+          >
+            {/* Column Header */}
+            <div className="flex items-center gap-2 mb-4">
+              <span className="text-xl">{STATUS_CONFIG[status].icon}</span>
+              <h2 className="text-white font-semibold capitalize">{status}</h2>
+              <span className="bg-slate-700 text-slate-300 text-xs px-2 py-1 rounded-full ml-auto">
+                {getAppsByStatus(status).length}
+              </span>
+            </div>
+
+            {/* Cards */}
+            <div className="space-y-3">
+              {getAppsByStatus(status).map(app => (
+                <div
+                  key={app.slug}
+                  draggable
+                  onDragStart={() => handleDragStart(app)}
+                  className="bg-slate-700 rounded-lg p-3 cursor-grab active:cursor-grabbing hover:bg-slate-600 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <span
+                      className="w-10 h-10 rounded-lg flex items-center justify-center text-xl"
+                      style={{ backgroundColor: app.color }}
+                    >
+                      {app.icon}
+                    </span>
+                    <div>
+                      <p className="text-white font-medium">{app.title}</p>
+                      <p className="text-slate-400 text-xs">{app.category || 'No category'}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {getAppsByStatus(status).length === 0 && (
+                <div className="text-slate-500 text-sm text-center py-8 border-2 border-dashed border-slate-700 rounded-lg">
+                  Drop here
+                </div>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Add App Modal */}
+      {showAddModal && (
+        <AddAppModal
+          onClose={() => setShowAddModal(false)}
+          onAdd={addNewApp}
+        />
+      )}
+
+      {/* Export Modal */}
+      {showExport && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+          <div className="bg-slate-800 rounded-xl p-6 max-w-2xl w-full max-h-[80vh] overflow-auto">
+            <h2 className="text-xl font-bold text-white mb-4">Export Config</h2>
+            <p className="text-slate-400 text-sm mb-4">
+              Copy this and replace the apps array in <code className="bg-slate-700 px-1 rounded">src/config/apps.ts</code>
+            </p>
+            <pre className="bg-slate-900 p-4 rounded-lg text-sm text-green-400 overflow-auto">
+              {generateConfigCode()}
+            </pre>
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(generateConfigCode())
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
+              >
+                Copy to Clipboard
+              </button>
+              <button
+                onClick={() => setShowExport(false)}
+                className="bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-medium"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function AddAppModal({ onClose, onAdd }: { onClose: () => void; onAdd: (app: App) => void }) {
+  const [form, setForm] = useState({
+    title: '',
+    slug: '',
+    icon: '',
+    color: '#4CAF50',
+    embedUrl: '',
+    category: '',
+    status: 'idea' as AppStatus,
+  })
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    const today = new Date().toISOString().split('T')[0]
+    onAdd({
+      ...form,
+      slug: form.slug || form.title.toLowerCase().replace(/\s+/g, '-'),
+      createdAt: today,
+    })
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+      <div className="bg-slate-800 rounded-xl p-6 max-w-md w-full">
+        <h2 className="text-xl font-bold text-white mb-4">Add New App</h2>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="text-slate-300 text-sm">App Name</label>
+            <input
+              type="text"
+              required
+              value={form.title}
+              onChange={e => setForm(f => ({ ...f, title: e.target.value }))}
+              className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+            />
+          </div>
+          <div className="flex gap-4">
+            <div className="flex-1">
+              <label className="text-slate-300 text-sm">Icon (emoji)</label>
+              <input
+                type="text"
+                required
+                value={form.icon}
+                onChange={e => setForm(f => ({ ...f, icon: e.target.value }))}
+                className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+                placeholder="📊"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="text-slate-300 text-sm">Color</label>
+              <input
+                type="color"
+                value={form.color}
+                onChange={e => setForm(f => ({ ...f, color: e.target.value }))}
+                className="w-full h-10 bg-slate-700 rounded-lg mt-1 cursor-pointer"
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-slate-300 text-sm">App URL</label>
+            <input
+              type="url"
+              required
+              value={form.embedUrl}
+              onChange={e => setForm(f => ({ ...f, embedUrl: e.target.value }))}
+              className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+              placeholder="https://my-app.vercel.app"
+            />
+          </div>
+          <div>
+            <label className="text-slate-300 text-sm">Category</label>
+            <select
+              value={form.category}
+              onChange={e => setForm(f => ({ ...f, category: e.target.value }))}
+              className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+            >
+              <option value="">Select...</option>
+              <option value="utility">Utility</option>
+              <option value="productivity">Productivity</option>
+              <option value="fun">Fun</option>
+              <option value="finance">Finance</option>
+              <option value="health">Health</option>
+            </select>
+          </div>
+          <div>
+            <label className="text-slate-300 text-sm">Initial Status</label>
+            <select
+              value={form.status}
+              onChange={e => setForm(f => ({ ...f, status: e.target.value as AppStatus }))}
+              className="w-full bg-slate-700 text-white rounded-lg px-3 py-2 mt-1"
+            >
+              {STATUSES.map(s => (
+                <option key={s} value={s}>
+                  {STATUS_CONFIG[s].icon} {s}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button
+              type="submit"
+              className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium"
+            >
+              Add App
+            </button>
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 bg-slate-700 hover:bg-slate-600 text-white px-4 py-2 rounded-lg font-medium"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}

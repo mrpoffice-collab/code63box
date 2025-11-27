@@ -1,7 +1,9 @@
+import { Suspense } from 'react'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { apps } from '@/config/apps'
 import ShareButton from '@/components/ShareButton'
+import AppViewerClient from '@/components/AppViewerClient'
 
 type Params = Promise<{ slug: string }>
 
@@ -49,20 +51,20 @@ export default async function AppViewer({
             {app.icon}
           </span>
           <span className="text-white font-medium">{app.title}</span>
+          {app.price && (
+            <span className="bg-yellow-500 text-black text-xs font-bold px-2 py-0.5 rounded-full">
+              {app.price}
+            </span>
+          )}
         </div>
 
         <ShareButton title={app.title} />
       </header>
 
-      {/* App iframe */}
-      <main className="flex-1">
-        <iframe
-          src={app.embedUrl}
-          className="w-full h-full border-0"
-          sandbox="allow-scripts allow-same-origin allow-forms allow-popups"
-          title={app.title}
-        />
-      </main>
+      {/* App Content */}
+      <Suspense fallback={<div className="flex-1 flex items-center justify-center text-white">Loading...</div>}>
+        <AppViewerClient app={app} />
+      </Suspense>
     </div>
   )
 }

@@ -6,12 +6,16 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "add-app": "node scripts/add-app.mjs"
   },
   "dependencies": {
+    "@stripe/stripe-js": "^8.5.3",
     "next": "16.0.5",
+    "posthog-js": "^1.298.1",
     "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react-dom": "19.2.0",
+    "stripe": "^20.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
