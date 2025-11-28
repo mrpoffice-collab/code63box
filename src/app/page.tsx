@@ -1,5 +1,6 @@
 import AppTile from '@/components/AppTile'
 import StatusLegend from '@/components/StatusLegend'
+import RefreshButton from '@/components/RefreshButton'
 import { getVisibleApps } from '@/config/apps'
 
 type SearchParams = Promise<{ dev?: string }>
@@ -14,7 +15,9 @@ export default async function Home({
   const visibleApps = getVisibleApps(showAll)
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col relative">
+      <RefreshButton />
+
       {/* Header */}
       <header className="pt-12 pb-6 px-4 text-center">
         <h1 className="text-2xl sm:text-3xl font-bold text-white tracking-tight">
