@@ -88,6 +88,26 @@ export const apps: App[] = [
     createdAt: '2025-11-27',
     status: 'building',
   },
+  {
+    slug: 'jotto',
+    title: 'Jotto',
+    icon: '📝',
+    color: '#eedbb4',
+    embedUrl: 'https://jotto-xi.vercel.app/',
+    category: 'fun',
+    createdAt: '2025-11-28',
+    status: 'shipped',
+  },
+  {
+    slug: 'chore-race',
+    title: 'Chore Race',
+    icon: '🏁',
+    color: '#e5e7eb',
+    embedUrl: 'https://chore-race.vercel.app/',
+    category: 'fun',
+    createdAt: '2025-11-28',
+    status: 'shipped',
+  },
 ]
 
 function isWithinDays(dateStr: string, days: number): boolean {
